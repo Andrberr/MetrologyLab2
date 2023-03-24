@@ -13,6 +13,7 @@ class MainActivity : AppCompatActivity() {
         private const val BEGIN_MULTI_LINE_COMMENT = "=begin"
         private const val END_MULTI_LINE_COMMENT = "=end"
         private const val END_WORD = "end"
+        private const val WHEN_WORD = "when "
     }
 
     private val vlozhOperators = arrayOf(
@@ -45,9 +46,8 @@ class MainActivity : AppCompatActivity() {
     private var operatorsMap: MutableMap<String, Int> = mutableMapOf()
     private var operatorsKol = 0
     private var stack = ArrayDeque<String>()
-    private var ifLevel = 0
-    private var cycleLevel = 0
-    private var caseLevel = 0
+    private var level = 0
+    private var whenKol = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,9 +63,9 @@ class MainActivity : AppCompatActivity() {
                 println(str)
             }
             solution(correctInput)
-            if (ifLevel != 0) ifLevel--
-            if (caseLevel != 0) caseLevel--
-            if (cycleLevel != 0) cycleLevel--
+            if (level != 0) level--
+//            val lev = whenKol - 1
+//            if (lev> level) level = lev
             var output = ""
 
             var allOperatorsKol = 0
@@ -73,21 +73,22 @@ class MainActivity : AppCompatActivity() {
             var number = 1
             for (operator in operatorsMap) {
                 allOperatorsKol += operator.value
-                output += "   $number    ->       ${operator.key}  ->  ${operator.value}\n"
-                number++
+//                output += "   $number    ->       ${operator.key}  ->  ${operator.value}\n"
+//                number++
             }
 
-            var ifKol = 0
-            output += "\n"
+            var abslSlozh = 0
             number = 1
             for (operator in vlozhOperatorsMap) {
-                if (operator.key.startsWith("if")) ifKol += operator.value
-                output += "   $number    ->       ${operator.key}  ->  ${operator.value}\n"
-                number++
+                abslSlozh += operator.value
+//                output += "   $number    ->       ${operator.key}  ->  ${operator.value}\n"
+//                number++
             }
-            output += "Абсолютная сложность программы = $ifKol\n"
-            output += "Относительная сложность программы = $ifKol / $allOperatorsKol = ${ifKol.toFloat() / allOperatorsKol.toFloat()}\n"
-            output += "Расширение метрики Джимба: if - $ifLevel, cycles - $cycleLevel, case - $caseLevel."
+            if (whenKol != 0) abslSlozh += whenKol - 1
+            output += "Абсолютная сложность программы = $abslSlozh\n"
+            output += "Количество операторов = $allOperatorsKol\n"
+            output += "Относительная сложность программы = $abslSlozh / $allOperatorsKol = ${abslSlozh.toFloat() / allOperatorsKol.toFloat()}\n"
+            output += "Максимальная вложенность = $level."
             solutionView.text = output
         }
     }
@@ -95,9 +96,9 @@ class MainActivity : AppCompatActivity() {
     private fun clean() {
         vlozhOperatorsMap.clear()
         operatorsMap.clear()
-        ifLevel = 0
-        caseLevel = 0
-        cycleLevel = 0
+        stack.clear()
+        level = 0
+        whenKol = 0
     }
 
     private fun getCorrectInput(input: String): Array<String> {
@@ -145,8 +146,12 @@ class MainActivity : AppCompatActivity() {
                 if (comment == END_MULTI_LINE_COMMENT) isCommented = false
                 if (isCommented) continue
 
+                if (input[i].startsWith(WHEN_WORD)) {
+                    whenKol++
+                    continue
+                }
+
                 var wasVlozh = false
-                var notVlozhWord = ""
                 while (j < input[i].length) {
                     var k = j
                     var word = ""
@@ -155,19 +160,9 @@ class MainActivity : AppCompatActivity() {
                         k++
                     }
 
-//                    if (word == FUN_WORD) {
-//                        var funOperator = ""
-//                        k++
-//                        while (k < input[i].length && input[i][k] != '(' && input[i][k] != ' ') {
-//                            funOperator += input[i][k]
-//                            k++
-//                        }
-//
-//                    } else
                     val wordIndex = findOperator(word)
                     if (wordIndex == -1) {
                         checkEndWord(word)
-                        // if (!rubyReservedWords.contains(input[i])) notVlozhWord+= "$word "
                     } else {
                         stack.add(word)
                         wasVlozh = true
@@ -224,7 +219,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (!wasVlozh && !rubyReservedWords.contains(input[i])) operatorsMap =
                     addElementToMap(operatorsMap, input[i])
-                //  if (notVlozhWord!="" && notVlozhWord!=input[i]) operatorsMap = addElementToMap(operatorsMap, notVlozhWord)
             }
         }
     }
@@ -240,9 +234,6 @@ class MainActivity : AppCompatActivity() {
             else elem
             if (operator == word) {
                 return i
-//                if (vlozhOperatorsMap[elem] != null) vlozhOperatorsMap[elem] =
-//                    vlozhOperatorsMap[elem]?.plus(1) ?: 0
-//                else vlozhOperatorsMap[elem] = 1
             }
             i++
         }
@@ -251,51 +242,31 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkEndWord(word: String): Boolean {
         if (word == END_WORD) {
-            analyzeStack()
+            if (stack[stack.size - 1].startsWith("case")) {
+                val lev = stack.size - 1 + whenKol
+                if (lev > level) level = lev
+                whenKol = 0
+            } else if (stack.size > level) {
+                level = stack.size
+            }
             stack.removeLast()
             return true
         }
         return false
     }
 
-    private fun analyzeStack() {
-        var ifKol = 0
-        var cycleKol = 0
-        var caseKol = 0
-        for (elem in stack) {
-            if (elem == "if") ifKol++
-            else if (elem == "case") caseKol++
-            else cycleKol++
-        }
-        if (ifKol > ifLevel) ifLevel = ifKol
-        if (caseKol > caseLevel) caseLevel = caseKol
-        if (cycleKol > cycleLevel) cycleLevel = cycleKol
-    }
+//    private fun analyzeStack() {
+//        var ifKol = 0
+//        var cycleKol = 0
+//        var caseKol = 0
+//        for (elem in stack) {
+//            if (elem == "if") ifKol++
+//            else if (elem == "case") caseKol++
+//            else cycleKol++
+//        }
+//        if (ifKol > ifLevel) ifLevel = ifKol
+//        if (caseKol > caseLevel) caseLevel = caseKol
+//        if (cycleKol > cycleLevel) cycleLevel = cycleKol
+//    }
 }
-/*
-puts "Number:"
-number = gets
-sc = 0
-l = number%3 #number+=4
-arr= [1,2,3,4,5]
-for i in 0..10 do
-    sc = sc + (arr[i]**l)
-    while sc <= 5 do
-      puts sc
-      sc+=1
-       for j in 0..arr.length-1 do
-         until item>0 do
-           if (item==5) then
-             if (item==4) then
-              item-=4
-               if (item==3) then
-                item-=3
-                if (item==2) then item-=2
-                end
-               end
-             end
-         end
-       end
-    end
-end
- */
+
