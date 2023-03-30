@@ -242,13 +242,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkEndWord(word: String): Boolean {
         if (word == END_WORD) {
-            if (stack[stack.size - 1].startsWith("case")) {
+            println(stack)
+            if (stack[stack.size - 1].startsWith("case") || stack.contains("case")) {
+                println("when kol = $whenKol")
                 val lev = stack.size - 1 + whenKol
                 if (lev > level) level = lev
-                whenKol = 0
+                if (stack[stack.size - 1].startsWith("case")) whenKol = 0
             } else if (stack.size > level) {
                 level = stack.size
             }
+            println(level)
             stack.removeLast()
             return true
         }
