@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private var stack = ArrayDeque<String>()
     private var level = 0
     private var whenKol = 0
+    private var allWhenKol = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
 //                output += "   $number    ->       ${operator.key}  ->  ${operator.value}\n"
 //                number++
             }
+         //        allOperatorsKol = allOperatorsKol
 
             var abslSlozh = 0
             number = 1
@@ -84,7 +86,7 @@ class MainActivity : AppCompatActivity() {
 //                output += "   $number    ->       ${operator.key}  ->  ${operator.value}\n"
 //                number++
             }
-            if (whenKol != 0) abslSlozh += whenKol - 1
+            if (allWhenKol != 0) abslSlozh += allWhenKol - 1
             output += "Абсолютная сложность программы = $abslSlozh\n"
             output += "Количество операторов = $allOperatorsKol\n"
             output += "Относительная сложность программы = $abslSlozh / $allOperatorsKol = ${abslSlozh.toFloat() / allOperatorsKol.toFloat()}\n"
@@ -99,6 +101,7 @@ class MainActivity : AppCompatActivity() {
         stack.clear()
         level = 0
         whenKol = 0
+        allWhenKol = 0
     }
 
     private fun getCorrectInput(input: String): Array<String> {
@@ -147,6 +150,7 @@ class MainActivity : AppCompatActivity() {
                 if (isCommented) continue
 
                 if (input[i].startsWith(WHEN_WORD)) {
+                    allWhenKol++
                     whenKol++
                     continue
                 }
