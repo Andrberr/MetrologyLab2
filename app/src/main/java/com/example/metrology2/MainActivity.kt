@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
 //                output += "   $number    ->       ${operator.key}  ->  ${operator.value}\n"
 //                number++
             }
-         //        allOperatorsKol = allOperatorsKol
+            //        allOperatorsKol = allOperatorsKol
 
             var abslSlozh = 0
             number = 1
@@ -185,14 +185,6 @@ class MainActivity : AppCompatActivity() {
                                     addElementToMap(vlozhOperatorsMap, input[i].substring(0, k))
                                 operatorsMap =
                                     addElementToMap(operatorsMap, input[i].substring(0, k))
-                                if (wordIndex == 3) {
-                                    var t = 0
-                                    while (t < 2) {
-                                        operatorsMap =
-                                            addElementToMap(operatorsMap, "for cycle")
-                                        t++
-                                    }
-                                }
 
                                 var ostStr = ""
                                 while (k < input[i].length) {
